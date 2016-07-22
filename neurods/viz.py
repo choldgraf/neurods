@@ -1,4 +1,6 @@
 """Functions for data visualization"""
+import matplotlib.pyplot as plt
+import numpy as np
 
 def find_squarish_dimensions(n):
     '''Get row,column dimensions for n elememnts

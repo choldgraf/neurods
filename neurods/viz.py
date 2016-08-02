@@ -2,15 +2,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+import itertools
 import mne
 
+
 def find_squarish_dimensions(n):
-    '''Get row,column dimensions for n elememnts
+    """Get balanced (approximately square) numbers of rows & columns for n elements
 
     Returns (nearly) sqrt dimensions for a given number. e.g. for 23, will
-    return [5,5] and for 26 it will return [6,5]. For creating displays of
-    sets of images, mostly. Always sets x greater than y if they are not
-    equal.
+    return [5, 5] and for 26 it will return [6, 5]. Useful for creating displays of
+    sets of images. Always sets x greater than y if x != y
 
     Returns
     -------
@@ -18,37 +19,38 @@ def find_squarish_dimensions(n):
        larger dimension (if not equal)
     y : int
        smaller dimension (if not equal)
-    '''
-    sq = np.sqrt(n);
+    """
+    sq = np.sqrt(n)
     if round(sq)==sq:
-        # if this is a whole number - i.e. a perfect square
-        x = sq;
-        y = sq;
-        return x, y
-    # One: next larger square
-    x = [np.ceil(sq)]
-    y = [np.ceil(sq)]
-    opt = [x[0]*y[0]];
-    # Two: immediately surrounding numbers
-    x += [np.ceil(sq)];
-    y += [np.floor(sq)];
-    opt += [x[1]*y[1]];
-    Test = np.array([o-n for o in opt])
-    Test[Test<0] = 1000; # make sure negative values will not be chosen as the minimum
-    GoodOption = np.argmin(Test);
-    x = x[GoodOption]
-    y = y[GoodOption]
+        # If n is a perfect square
+        x, y = sq, sq
+    else:
+        # Take either bigger square (first entries) or asymmetrical square (second entries)
+        x_poss = [np.ceil(sq), np.ceil(sq)]
+        y_poss = [np.ceil(sq), np.floor(sq)]
+        n_elements = [x*y for x, y in zip(x_poss, y_poss)]
+        err = np.array([n_e-n for n_e in n_elements])
+        # Make sure negative values will not be chosen as the minimum
+        err[err<0] = 1000 
+        best_idx = np.argmin(err)
+        x = x_poss[best_idx]
+        y = y_poss[best_idx]
     return x, y
 
-# Mark's slicing function. Perhaps fancier than we need. 
-def slice_3d_matrix(volume, axis=2, figh=None, vmin=None, vmax=None, cmap=plt.cm.gray, nr=None, nc=None ):
-    '''Slices 3D matrix along arbitrary axis
+
+### --- Created in week 8 --- ###
+
+def slice_3d_array(volume, axis=2, fig=None, vmin=None, vmax=None, cmap=plt.cm.gray, nr=None, nc=None ):
+    """Slices 3D array along arbitrary axis
 
     Parameters
     ----------
-    volume : array (3D)
-    axis : int | 0,1,[2] (optional)
-       axis along which to divide the matrix into slices
+    volume : np.array (3D)
+        Data to be shown
+    axis : int | 0, 1, [2] (optional)
+       axis along which to divide the array into slices
+    fig : plt.figure
+        figure in which to plot array slices
 
     Other Parameters
     ----------------
@@ -57,34 +59,31 @@ def slice_3d_matrix(volume, axis=2, figh=None, vmin=None, vmax=None, cmap=plt.cm
     vmax : float [min(volume)] (optional)
        color axis maximum
     cmap : matplotlib colormap instance [plt.cm.gray] (optional)
+        color map for data
     nr : int (optional)
        number of rows
     nc : int (optional)
        number of columns
-    '''
-    if figh is None:
+    """
+    if fig is None:
         fig = plt.figure()
-    else:
-        fig = plt.figure(figh)
     if nr is None or nc is None:
-        nc,nr = find_squarish_dimensions(volume.shape[axis])
+        nc, nr = find_squarish_dimensions(volume.shape[axis])
     if vmin is None:
-        vmin = volume.min()
+        vmin = np.nanmin(volume)
     if vmax is None:
-        vmax = volume.max()
-    ledges = np.linspace(0, 1, nc+1)[:-1]
-    bedges = np.linspace(1, 0, nr+1)[1:]
+        vmax = np.nanmax(volume)
+    l_edges = np.linspace(0, 1, nc+1)[:-1]
+    b_edges = np.linspace(1, 0, nr+1)[1:]
     width = 1/float(nc)
     height = 1/float(nr)
-    bottoms,lefts = zip(*list(itertools.product(bedges, ledges)))
-    for ni,sl in enumerate(np.split(volume, volume.shape[axis],axis=axis)):
-        #ax = fig.add_subplot(nr, nc, ni+1)
+    bottoms, lefts = zip(*list(itertools.product(b_edges, l_edges)))
+    for ni, sl in enumerate(np.split(volume, volume.shape[axis], axis=axis)):
         ax = fig.add_axes((lefts[ni], bottoms[ni], width, height))
-        ax.imshow(sl.squeeze(), vmin=vmin, vmax=vmax, interpolation="nearest",cmap=cmap)
+        ax.imshow(sl.squeeze(), vmin=vmin, vmax=vmax, interpolation="nearest", cmap=cmap)
         ax.set_xticks([])
         ax.set_yticks([])
     return fig
-
 
 
 def plot_activity_on_brain(x, y, act, im, smin=10, smax=100, vmin=None,
@@ -95,7 +94,7 @@ def plot_activity_on_brain(x, y, act, im, smin=10, smax=100, vmin=None,
     ----------
     x : array, shape (n_channels,)
         The x positions of electrodes
-    y : array, shape (n_channels,)
+    y : array, shape (n_channels, )
         The y positions of electrodes
     act : array, shape (n_channels,)
         The activity values to plot as size/color on electrodes

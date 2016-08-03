@@ -85,6 +85,17 @@ def slice_3d_array(volume, axis=2, fig=None, vmin=None, vmax=None, cmap=plt.cm.g
         ax.set_yticks([])
     return fig
 
+### --- Created in week 9 --- ###
+def show_design_matrix(X, conditions=None, time_unit='s'):
+    """Simple display of design matrix for an experiment, as an image"""
+    n_trs, n_channels = X.shape
+    plt.imshow(X.T)
+    plt.xlabel('Time ({})'.format(time_unit))
+    plt.ylabel('Condition')
+    if conditions is None:
+        conditions = np.arange(1, n_channels+1)
+    plt.yticks(range(n_channels), conditions)
+
 
 def plot_activity_on_brain(x, y, act, im, smin=10, smax=100, vmin=None,
                            vmax=None, ax=None, cmap=None, name=None):

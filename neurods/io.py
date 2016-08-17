@@ -3,7 +3,8 @@ import numpy as np
 import shutil as sh
 import os.path as op
 import os
-import zipfile
+from zipfile import ZipFile
+from mne.utils import _fetch_file
 
 
 def mne_to_table(data):
@@ -80,7 +81,7 @@ def download_file(url, name, root_destination='~/data/', zipfile=False,
         os.makedirs(op.dirname(out_path))
 
     if zipfile is True:
-        mne.utils._fetch_file(download_path, tmpfile)
+        _fetch_file(download_path, tmpfile)
         myzip = ZipFile(tmpfile)
         myzip.extractall(out_path)
         os.remove(tmpfile)
@@ -90,5 +91,5 @@ def download_file(url, name, root_destination='~/data/', zipfile=False,
         if replace is False and op.exists(out_path):
             raise ValueError('Path {} exists, use `replace=True` to '
                              'overwrite'.format(out_path))
-        mne.utils._fetch_file(download_path, out_path)
+        _fetch_file(download_path, out_path)
     print('Successfully moved file to {}'.format(out_path))

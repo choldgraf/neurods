@@ -13,7 +13,7 @@ def load_data(fname, mask=None, standardize=False):
     if isinstance(fname, (list, tuple)):
         return np.vstack([load_data(f, mask=mask, standardize=standardize) for f in fname])
     nii = nibabel.load(fname)
-    data = nii.get_data().T
+    data = nii.get_data().T.astype(np.float32)
     if mask is not None:
         data = data[:, mask]
     if standardize:

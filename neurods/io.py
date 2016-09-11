@@ -7,6 +7,9 @@ from zipfile import ZipFile
 from mne.utils import _fetch_file
 
 
+path_data = '/home/shared/cogneuro-connector/data/'
+
+
 def mne_to_table(data):
     """Convert an MNE Raw object into a datascience table."""
     data_values = []

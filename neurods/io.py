@@ -3,11 +3,20 @@ import numpy as np
 import shutil as sh
 import os.path as op
 import os
+from glob import glob
 from zipfile import ZipFile
 from mne.utils import _fetch_file
 
 
 path_data = '/home/shared/cogneuro-connector/data/'
+data_list = {'eeg': path_data + 'eeg/',
+             'ecog': path_data + 'ecog/',
+             'fmri': path_data + 'fMRI/'}
+
+
+def list_files(path):
+    files = glob(path + '*/*/*')
+    print(files)
 
 
 def mne_to_table(data):

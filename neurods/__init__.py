@@ -4,6 +4,6 @@ from . import viz
 from . import tfr
 from . import utils
 from . import stats
-# How do we feel about this:
 from .utils import time_mask
-# ?
+
+__version__ = '0.1'

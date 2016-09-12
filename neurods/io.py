@@ -1,5 +1,6 @@
 import datascience as ds
 import numpy as np
+import pandas as pd
 import shutil as sh
 import os.path as op
 import os
@@ -21,11 +22,9 @@ def list_files(path):
 
 def mne_to_table(data):
     """Convert an MNE Raw object into a datascience table."""
-    data_values = []
-    for i_ch, i_data in zip(data.ch_names, data._data):
-        data_values.append((i_ch, i_data))
-    table = ds.Table().with_columns(data_values)
-    table['time'] = np.arange(data._data.shape[-1]) / data.info['sfreq']
+    df = pd.DataFrame(data._data.T, columns=data.ch_names)
+    table = ds.Table().from_df(df)
+    table['time'] = np.arange(df.shape[0]) / data.info['sfreq']
     return table
 
 

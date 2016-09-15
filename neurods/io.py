@@ -111,8 +111,9 @@ def download_file(url, name, root_destination='~/data/', zipfile=False,
 
 
 def strip_answers(nbpath, strip_string='### STUDENT ANSWER',
-                  output_suffix='student', save=True,
-                  clean_outputs=True, path_save=None):
+                  output_suffix='student', keep_strip_string=True,
+                  remove_cell=False, clean_outputs=True, save=True,
+                  path_save=None):
     """Clean inputs / outputs of notebooks to send to students.
 
     Parameters
@@ -146,6 +147,10 @@ def strip_answers(nbpath, strip_string='### STUDENT ANSWER',
         # Replace some input cells
         ix = cell['source'].find(strip_string)
         if ix != -1:
+            if remove_cell is True:
+                # Remove the whole cell and move on
+                _ = nb['cells'].pop(ii)
+                continue
             newstr = cell['source'][:ix + len(strip_string)] + '\n'
             cell['source'] = newstr
 

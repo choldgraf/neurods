@@ -9,7 +9,7 @@ import os
 import setuptools
 from numpy.distutils.core import setup
 
-version = "0.1"
+version = None
 with open(os.path.join('neurods', '__init__.py'), 'r') as fid:
     for line in (line.strip() for line in fid):
         if line.startswith('__version__'):

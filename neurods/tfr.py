@@ -2,10 +2,11 @@ from mne.time_frequency import cwt_morlet
 from mne.utils import warn
 import numpy as np
 from tqdm import tqdm
+import warnings
 
 
 def tfr_morlet(data, sfreq, freqs, kind='amplitude', n_cycles=3.,
-               use_fft=False, decimate=1, average=False):
+               use_fft=True, decimate=1, average=False):
     """Calculate the time-frequency representation of a signal.
 
     Parameters
@@ -41,9 +42,11 @@ def tfr_morlet(data, sfreq, freqs, kind='amplitude', n_cycles=3.,
     for i_data in tqdm(data):
         # Calculate the wavelet transform for each iteration and stack
         i_data = np.atleast_2d(i_data)
-        this_tfr = cwt_morlet(i_data, sfreq,
-                              freqs, n_cycles=n_cycles,
-                              use_fft=use_fft)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            this_tfr = cwt_morlet(i_data, sfreq,
+                                  freqs, n_cycles=n_cycles,
+                                  use_fft=use_fft)
         if kind == 'filter':
             # In this case, we'll just take the real values
             this_tfr = np.real(this_tfr)
@@ -67,3 +70,56 @@ def tfr_morlet(data, sfreq, freqs, kind='amplitude', n_cycles=3.,
     else:
         tfr = np.asarray(tfr)
     return tfr.squeeze()
+
+
+def extract_amplitude(inst, freqs, n_cycles=7, normalize=False):
+    """Extract the time-varying amplitude for a frequency band.
+
+    If multiple freqs are given, the amplitude is calculated at each frequency
+    and then averaged across frequencies.
+
+    Parameters
+    ----------
+    inst : instance of Raw
+        The data to have amplitude extracted
+    freqs : array of ints/floats, shape (n_freqs)
+        The frequencies to use. If multiple frequency bands given, amplitude
+        will be extracted at each and then averaged between frequencies. The
+        structure of each band is fmin, fmax.
+    n_cycles : int
+        The number of cycles to include in the filter length for the wavelet.
+    normalize : bool
+        Normalize the power of each band by its mean before combining.
+
+    Returns
+    -------
+    inst : mne instance, same type as input 'inst'
+        The MNE instance with channels replaced with their time-varying
+        amplitude for the supplied frequency range.
+    """
+
+    # Data checks
+    freqs = np.atleast_1d(freqs)
+    picks = range(len(inst.ch_names))
+    if inst.preload is False:
+        raise ValueError('Data must be preloaded.')
+
+    # Filter for HFB and extract amplitude
+    bands = np.zeros([len(picks), inst.n_times])
+    for ifreq in tqdm(freqs):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # Extract power for this frequency + modify in place to save mem
+            band = np.abs(cwt_morlet(inst._data, inst.info['sfreq'], [ifreq]))
+        band = band[:, 0, :]
+
+        if normalize is True:
+            # Scale frequency band so that the ratios of all are the same
+            band /= band.mean()
+        bands += np.abs(band)
+
+    # Convert into an average
+    bands /= len(freqs)
+    inst = inst.copy()
+    inst._data = bands
+    return inst

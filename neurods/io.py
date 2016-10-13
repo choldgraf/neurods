@@ -19,13 +19,19 @@ data_list = {'eeg': path_data + 'eeg/',
              'fmri': path_data + 'fMRI/'}
 
 
-def list_files(path):
-    files = glob(path + '*/*/*')
-    print(files)
-
-
 def mne_to_table(data):
-    """Convert an MNE Raw object into a datascience table."""
+    """Convert an MNE Raw object into a datascience table.
+
+    Parameters
+    ----------
+    data : instance of MNE raw object.
+        The data to be converted to a table.
+
+    Returns
+    -------
+    table : instance of datascience Table.
+        The data in table format.
+    """
     df = pd.DataFrame(data._data.T, columns=data.ch_names)
     table = ds.Table().from_df(df)
     table['time'] = np.arange(df.shape[0]) / data.info['sfreq']
@@ -133,7 +139,7 @@ def strip_answers(nbpath, strip_string='### STUDENT ANSWER',
         An optional path to a folder where the output notebook will
         be saved. If None, save in the same directory as nbpath.
 
-    Outputs
+    Returns
     -------
     nb : instance of NotebookNode
         The NotebookNode corresponding to the cleaned notebook.
@@ -176,6 +182,7 @@ def strip_answers(nbpath, strip_string='### STUDENT ANSWER',
 
 
 def update_neurods():
+    """Use a shell command to update neurods."""
     s = ('pip install git+https://github.com/choldgraf/neurods.git --user '
          '--upgrade')
     s = check_output(s.split(' '))

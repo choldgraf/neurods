@@ -29,6 +29,12 @@ def tfr_morlet(data, sfreq, freqs, kind='amplitude', n_cycles=3.,
         The amount to decimate the output. If 1, no decimation will be done.
     average : bool
         Whether to average across the first dimension before returning results.
+
+    Returns
+    -------
+    tfr : array, shape ([n_epochs], n_channels, n_frequencies, n_times)
+        The time-frequency data calculated from inputs. If `average=True`, the
+        output will be averaged across the first dimension (epochs).
     """
     # Loop through our data
     if average is True:

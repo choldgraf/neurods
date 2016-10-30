@@ -50,8 +50,10 @@ def find_squarish_dimensions(n):
         y = y_poss[best_idx]
     return x, y
 
-### --- Created in week 8 --- ###
-def slice_3d_array(volume, axis=2, fig=None, vmin=None, vmax=None, cmap=plt.cm.gray, nr=None, nc=None ):
+
+# --- Created in week 8 ---
+def slice_3d_array(volume, axis=2, fig=None, vmin=None, vmax=None,
+                   cmap=plt.cm.gray, nr=None, nc=None):
     """Slices 3D array along arbitrary axis
 
     Parameters
@@ -91,12 +93,14 @@ def slice_3d_array(volume, axis=2, fig=None, vmin=None, vmax=None, cmap=plt.cm.g
     bottoms, lefts = zip(*list(itertools.product(b_edges, l_edges)))
     for ni, sl in enumerate(np.split(volume, volume.shape[axis], axis=axis)):
         ax = fig.add_axes((lefts[ni], bottoms[ni], width, height))
-        ax.imshow(sl.squeeze(), vmin=vmin, vmax=vmax, interpolation="nearest", cmap=cmap)
+        ax.imshow(sl.squeeze(), vmin=vmin, vmax=vmax, interpolation="nearest",
+                  cmap=cmap)
         ax.set_xticks([])
         ax.set_yticks([])
     return fig
 
-### --- Created in week 9 --- ###
+
+# --- Created in week 9 ---
 def show_design_matrix(X, conditions=None, time_unit='s'):
     """Simple display of design matrix for an experiment, as an image"""
     n_trs, n_channels = X.shape
@@ -106,6 +110,7 @@ def show_design_matrix(X, conditions=None, time_unit='s'):
     if conditions is None:
         conditions = np.arange(1, n_channels+1)
     plt.yticks(range(n_channels), conditions)
+
 
 def plot_activity_on_brain(x, y, act, im, smin=10, smax=100, vmin=None,
                            vmax=None, alpha=None, ax=None, cmap=None,

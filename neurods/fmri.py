@@ -9,7 +9,22 @@ import numpy as np
 
 ### Created for HW for week 7
 def load_data(fname, mask=None, standardize=False):
-    """Load fMRI data from nifti file, optionally with masking and standardization"""
+    """Load fMRI data from nifti file, optionally with masking and standardization
+
+    Parameters
+    ----------
+    fname : string
+        string name for file to load
+    mask : array
+        boolean array with which to mask data
+    standardize : bool
+        if True, computes standard (z) score of data along first (time) axis
+
+    Returns
+    -------
+    data : array
+        4D or 2D (if `mask` is not None) array of fMRI data.
+    """
     if isinstance(fname, (list, tuple)):
         return np.vstack([load_data(f, mask=mask, standardize=standardize) for f in fname])
     nii = nibabel.load(fname)
@@ -32,6 +47,12 @@ def unmask(data, mask, bg_value=0):
         Boolean mask that was used to mask data.
     bg_value : scalar
         Value to be inserted into masked-out parts of 3D volume.
+
+    Returns
+    -------
+    data_unmasked : array
+        Data returned to its original, unmasked shape (3D or 4D) with 
+        `bg_value` inserted into previously masked-out locations
     """
     if np.ndim(data)==1:
         br = np.ones(mask.shape) * bg_value
@@ -42,7 +63,6 @@ def unmask(data, mask, bg_value=0):
     else:
         raise Exception("Can't unmask > 2D data!")
     return br
-
 
 ### Created for HW for week 8
 def compute_event_avg(data, events, time_per_event):
@@ -80,19 +100,21 @@ def hrf(shape='twogamma', tr=1, pttp=5, nttp=15, pos_neg_ratio=6, onset=0, pdsp=
         Time to negative (undershoot) peak in seconds (default = 15)
     pos_neg_ratio : scalar
         Positive-to-negative ratio (default: 6, OK: [1 .. Inf])
-    onset : 
+    onset : scalar
         Onset of the HRF (default: 0 secs, OK: [-5 .. 5])
-    pdsp : 
+    pdsp : scalar
         Dispersion of positive gamma PDF (default: 1)
-    ndsp : 
+    ndsp : scalar
         Dispersion of negative gamma PDF (default: 1)
     t : vector | None
         Sampling range (default: [0, onset + 2 * (nttp + 1)])
     
     Returns
     -------
-    h : HRF function given within [0 .. onset + 2*nttp]
-    t : HRF sample points
+    h : array
+        Hemodynamic response function for times in `t`
+    t : array
+        Sample times for values in `h`
     
     Notes
     -----
@@ -112,23 +134,23 @@ def hrf(shape='twogamma', tr=1, pttp=5, nttp=15, pos_neg_ratio=6, onset=0, pdsp=
     if not shape.lower() in ('twogamma', 'boynton'):
         warnings.warn('Shape can only be "twogamma" or "boynton"')
         shape = 'twogamma'
+    # Compute time if not given
     if t is None:
         t = np.arange(0, (onset + 2 * (nttp + 1)), tr) - onset
     else:
         t = np.arange(np.min(t), np.max(t), tr) - onset;
-
     # Create filter
     h = np.zeros((len(t), ))
     if shape.lower()=='boynton':
-        # boynton (single-gamma) HRF
+        # Boynton (single-gamma) HRF
         h = scipy.stats.gamma.pdf(t, pttp + 1, pdsp)
     elif shape.lower()=='twogamma':
         gpos = scipy.stats.gamma.pdf(t, pttp + 1, pdsp)
         gneg = scipy.stats.gamma.pdf(t, nttp + 1, ndsp) / pos_neg_ratio
         h =  gpos-gneg 
+    # Normalize total response of filter to be 1
     h /= np.sum(h)
     return t, h
-
 
 def simple_convolution(data, kernel):
     """Simple 1-D convolution function

@@ -19,7 +19,6 @@ def set_figsize(dims):
     plt.rcParams['figure.figsize'] = dims
 
 
-
 def plot_activity_on_brain(x, y, act, im, smin=10, smax=100, vmin=None,
                            vmax=None, alpha=None, ax=None, cmap=None,
                            name=None):
@@ -214,4 +213,96 @@ def plot_tfr_topo(atfr, im, lt, baseline=(None, 0), mode='zscore',
     mne.viz.add_background_image(fig, im)
     if show is True:
         fig.show()
+    return fig
+
+
+def find_squarish_dimensions(n):
+    """Get balanced (approximately square) numbers of rows & columns for n elements
+
+    Returns (nearly) sqrt dimensions for a given number. e.g. for 23, will
+    return [5, 5] and for 26 it will return [6, 5]. Useful for creating displays of
+    sets of images. Always sets x greater than y if x != y
+    Parameters
+    ----------
+    n : int
+        number to divide into equal number of rows, columns
+
+    Returns
+    -------
+    x : int
+        larger dimension (if not equal)
+    y : int
+        smaller dimension (if not equal)
+    """
+    sq = np.sqrt(n)
+    if round(sq)==sq:
+        # If n is a perfect square
+        x, y = sq, sq
+    else:
+        # Take either bigger square (first entries) or asymmetrical square (second entries)
+        x_poss = [np.ceil(sq), np.ceil(sq)]
+        y_poss = [np.ceil(sq), np.floor(sq)]
+        n_elements = [x*y for x, y in zip(x_poss, y_poss)]
+        err = np.array([n_e-n for n_e in n_elements])
+        # Make sure negative values will not be chosen as the minimum
+        err[err<0] = 1000 
+        best_idx = np.argmin(err)
+        x = x_poss[best_idx]
+        y = y_poss[best_idx]
+    return x, y
+
+
+# --- Created in week 8 ---
+def slice_3d_array(volume, axis=2, fig=None, nr=None, nc=None, 
+                   vmin=None, vmax=None, cmap=plt.cm.gray, **kwargs):
+    """Slices 3D array along arbitrary axis
+
+    Parameters
+    ----------
+    volume : np.array (3D)
+        Data to be shown
+    axis : int | 0, 1, [2] (optional)
+       axis along which to divide the array into slices
+    fig : plt.figure
+        figure in which to plot array slices
+    nr : int 
+       number of rows (computed such that layout is approximately
+       square if either nr or nc is None)
+    nc : int 
+       number of columns (computed such that layout is approximately
+       square if either nr or nc is None)
+
+    Other Parameters
+    ----------------
+    vmin : float [max(volume)] (optional) 
+       color axis minimum
+    vmax : float [min(volume)] (optional)
+       color axis maximum
+    cmap : matplotlib colormap instance [plt.cm.gray] (optional)
+        color map for data
+    kwargs : keyword arguments
+        all mapped to imshow inputs
+    """
+    if fig is None:
+        fig = plt.figure()
+    if nr is None or nc is None:
+        nc, nr = find_squarish_dimensions(volume.shape[axis])
+    if vmin is None:
+        vmin = np.nanmin(volume)
+    if vmax is None:
+        vmax = np.nanmax(volume)
+    l_edges = np.linspace(0, 1, nc+1)[:-1]
+    b_edges = np.linspace(1, 0, nr+1)[1:]
+    width = 1 / float(nc)
+    height = 1 / float(nr)
+    bottoms, lefts = zip(*list(itertools.product(b_edges, l_edges)))
+    for array_slice, bottom, left in zip(np.split(volume, volume.shape[axis], axis=axis), bottoms, lefts):
+        # Create a new axis
+        ax = fig.add_axes((left, bottom, width, height))
+        # Show one slice of the array in the specific dimension requested
+        ax.imshow(array_slice.squeeze(), vmin=vmin, vmax=vmax, interpolation="nearest",
+                  cmap=cmap, **kwargs)
+        # Get rid of ticks
+        ax.set_xticks([])
+        ax.set_yticks([])
     return fig

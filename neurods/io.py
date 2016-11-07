@@ -16,7 +16,8 @@ from importlib import reload
 path_data = '/home/shared/cogneuro-connector/data/'
 data_list = {'eeg': path_data + 'eeg/',
              'ecog': path_data + 'ecog/',
-             'fmri': path_data + 'fmri/'}
+             'fmri': path_data + 'fmri/',
+             'fake': path_data + 'fake/'}
 
 
 def mne_to_table(data):

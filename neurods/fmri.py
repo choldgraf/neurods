@@ -65,24 +65,33 @@ def unmask(data, mask, bg_value=0):
     return br
 
 ### Created for HW for week 8
-def compute_event_avg(data, events, time_per_event):
-    """Columns of `events` are markers for different types of events
-    events are event onsets OR 
-    data should be columns
+def compute_event_avg(data, event_onsets, time_per_event):
+    """Compute average time course for events.
+    
+    Parameters
+    ----------
+    data : array
+        data over which to compute event averages. First dimension should be time.
+    event_onsets : array-like
+        array or list of event onset times (in samples)
+    time_per_event : int
+        number of samples per event
+
+    Returns
+    -------
+    event_avg : array
+        average of data for `time_per_event` samples after `event_onsets`
     """
-    # 1D data for now
-    if events.dtype in (np.bool, ):
-        event_start = np.nonzero(events)[0]
-    else:
-        event_start = events
     event_stack = []
-    for st, fin in zip(event_start, event_start+time_per_event):
+    for st, fin in zip(event_onsets, event_onsets + time_per_event):
         tmp = data[st:fin]
+        # Account for over-run of data time
         if fin > len(data):
-            tmp = np.hstack([tmp, np.zeros(fin-len(data))])
+            tmp = np.hstack([tmp, np.nan*np.zeros((fin-len(data),))])        
         event_stack.append(tmp)
-    event_stack = np.nanmean(event_stack, axis=0)
-    return event_stack
+    event_stack = np.array(event_stack)
+    event_avg = np.nanmean(event_stack, axis=0)
+    return event_avg
 
 
 def hrf(shape='twogamma', tr=1, pttp=5, nttp=15, pos_neg_ratio=6, onset=0, pdsp=1, ndsp=1, t=None):

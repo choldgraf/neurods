@@ -183,7 +183,7 @@ def strip_answers(nbpath, strip_string='### STUDENT ANSWER',
 
 def update_neurods():
     """Use a shell command to update neurods."""
-    s = ('pip install git+https://github.com/choldgraf/neurods.git --user '
+    s = ('pip install git+https://github.com/choldgraf/neurods.git@student-sp2017 --user '
          '--upgrade')
     s = check_output(s.split(' '))
     s = s.decode('utf-8')

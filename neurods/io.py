@@ -49,6 +49,9 @@ def _convert_url_to_downloadable(url):
         out = '{}{}'.format(base_url, file_id)
     elif 'www.dropbox.com' in url:
         out = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+    elif 'github.com' in url:
+        out = url.replace('github.com', 'raw.githubusercontent.com')
+        out = out.replace('blob/', '')
     else:
         out = url
     return out

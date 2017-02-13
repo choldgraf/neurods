@@ -13,7 +13,7 @@ from subprocess import check_output
 from importlib import reload
 
 
-path_data = '/home/shared/cogneuro-connector/data/'
+path_data = '/home/shared/cogneuro-connector/'
 data_list = {'eeg': path_data + 'eeg/',
              'ecog': path_data + 'ecog/',
              'fmri': path_data + 'fMRI/'}

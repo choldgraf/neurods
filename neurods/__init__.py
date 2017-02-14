@@ -7,7 +7,7 @@ from . import utils
 #from .utils import time_mask
 import warnings as _warn
 
-__version__ = '0.1'
+__version__ = '0.1.1'
 
 # Filter out warnings
 _warn.simplefilter('ignore')

@@ -13,10 +13,10 @@ from subprocess import check_output
 from importlib import reload
 
 
-path_data = '/home/shared/cogneuro-connector/'
-data_list = {'eeg': path_data + 'eeg/',
-             'ecog': path_data + 'ecog/',
-             'fmri': path_data + 'fMRI/'}
+path_data = '/data/shared/cogneuro88/'
+data_list = {'eeg': os.path.join(path_data, 'eeg/'),
+             'ecog': os.path.join(path_data, 'ecog/'),
+             'fmri': os.path.join(path_data, 'fMRI/')}
 
 
 def mne_to_table(data):

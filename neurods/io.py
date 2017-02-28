@@ -19,6 +19,45 @@ data_list = {'eeg': os.path.join(path_data, 'eeg/'),
              'fmri': os.path.join(path_data, 'fMRI/')}
 
 
+def load_fmri_data(*files, do_zscore=False, mask=None, dtype=np.float32):
+    """Load fMRI data from files and optionally z-normalize data
+    
+    Parameters
+    ----------
+    files : strings 
+        Absolute path names for files to be loaded
+    do_zscore : bool
+        Flag that determines whether to zscore data in time or not
+    mask : boolean array
+        Selection mask that specifies which voxels to extract from 3D brain
+    dtype : numpy data type
+        Data type to which to convert the loaded data
+
+    Returns
+    -------
+    data : array
+        fMRI data array, in (time, z, y, x) format (if not masked) or in
+        (time, voxels) format (if masked)
+    """
+    # Create a list to store data
+    data = []
+    # Loop over files in list
+    for f in files:
+        print("Loading {}...".format(f))
+        nii = nibabel.load(f)
+        tmp = nii.get_data().T.astype(dtype)
+        # Optionally mask data
+        if mask is not None:
+            tmp = tmp[:, mask]
+        # Optionally zscore each run independently
+        if do_zscore:
+            tmp = zscore(tmp, axis=0)
+        data.append(tmp)
+        del tmp
+    # Concatenate full data
+    data = np.vstack(data)
+    return data
+
 def mne_to_table(data):
     """Convert an MNE Raw object into a datascience table.
 

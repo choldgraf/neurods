@@ -120,6 +120,20 @@ def mne_to_table(data):
     table['time'] = np.arange(df.shape[0]) / data.info['sfreq']
     return table
 
+def _convert_url_to_downloadable(url):
+    """Convert a url to the proper style depending on its website."""
+
+    if 'drive.google.com' in url:
+        raise ValueError('Google drive links are not currently supported')
+        # For future support of google drive
+        file_id = url.split('d/').split('/')[0]
+        base_url = 'https://drive.google.com/uc?export=download&id='
+        out = '{}{}'.format(base_url, file_id)
+    elif 'www.dropbox.com' in url:
+        out = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+    else:
+        out = url
+    return out
 
 def download_file(url, name, root_destination='~/data/', zipfile=False,
                   replace=False):
@@ -163,7 +177,7 @@ def download_file(url, name, root_destination='~/data/', zipfile=False,
     download_path = _convert_url_to_downloadable(url)
 
     # Now save to the new destination
-    out_path = root_destination.replace('~', home) + name
+    out_path = os.path.expanduser(os.path.join(root_destination, name))
     if not op.isdir(op.dirname(out_path)):
         print('Creating path {} for output data'.format(out_path))
         os.makedirs(op.dirname(out_path))

@@ -1,4 +1,7 @@
 import datascience as ds
+import nibabel
+from scipy.stats import zscore
+import mne
 import numpy as np
 import pandas as pd
 import shutil as sh
@@ -58,6 +61,47 @@ def load_fmri_data(*files, do_zscore=False, mask=None, dtype=np.float32):
     data = np.vstack(data)
     return data
 
+
+def load_eeg_data(fname, ref_electrode_idx=(6,23), verbose=False,
+                  filter_cutoffs=(1,12), return_mne=True):
+    """Load EEG data
+
+    Parameters
+    ----------
+    fname : string
+        String file name (full path)
+    ref_electrode_idx : tuple or list
+        Tuple or list of electrodes to use as references for the rest of the electrodes
+    verbose : boolean
+        Turn verbose output on (True) or off (False)
+    filter_cutoffs : 2-tuple
+        (low, high) frequency cutoffs for filtering the data
+    return_mne : boolean
+        specify whether to return mne.io.Raw object as output (see below)
+    Returns
+    -------
+    output : mne.io.Raw object or tuple
+        if `return_mne` is True, an mne.io.Raw object 
+        if `return_mne` is False, a tuple of two arrays (time, data). Second tuple element
+        (data) is of shape (electrode_channels, time)
+
+    """
+    raw = mne.io.Raw(fname, preload=True, verbose=verbose)
+    # Remove mastoid channels
+    raw._data = raw._data[:-2]
+    # Reference signal to selected electrodes
+    if ref_electrode_idx is not None:
+        ref_electrodes = raw._data[list(ref_electrode_idx)]
+        raw._data -= ref_electrodes.mean(0)
+    # Smooth the data
+    if filter_cutoffs is not None:
+        fmin, fmax = filter_cutoffs # Set cutoffs for low and high frequency in data
+        raw._data = mne.filter.filter_data(raw._data, raw.info['sfreq'], fmin, fmax, verbose=verbose)
+    if return_mne:
+        return raw
+    else:
+        return raw.times, raw._data
+
 def mne_to_table(data):
     """Convert an MNE Raw object into a datascience table.
 
@@ -75,22 +119,6 @@ def mne_to_table(data):
     table = ds.Table().from_df(df)
     table['time'] = np.arange(df.shape[0]) / data.info['sfreq']
     return table
-
-
-def _convert_url_to_downloadable(url):
-    """Convert a url to the proper style depending on its website."""
-
-    if 'drive.google.com' in url:
-        raise ValueError('Google drive links are not currently supported')
-        # For future support of google drive
-        file_id = url.split('d/').split('/')[0]
-        base_url = 'https://drive.google.com/uc?export=download&id='
-        out = '{}{}'.format(base_url, file_id)
-    elif 'www.dropbox.com' in url:
-        out = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com')
-    else:
-        out = url
-    return out
 
 
 def download_file(url, name, root_destination='~/data/', zipfile=False,

@@ -19,7 +19,7 @@ def get_onsets(cond):
     # (Note fancy syntax from above to pull out first element of a tuple)
     on_times, = np.nonzero(cond)
     # Choose 
-    keepers = np.diff(np.hstack([-1, on_times]))>1
+    keepers = np.diff(np.hstack([-2, on_times]))>1
     onset_times = on_times[keepers]
     return onset_times
 
@@ -32,7 +32,22 @@ def extract_epochs(data, onset_indices, tmin=-0.1, tmax=0.6, sfreq=2048, is_verb
     data : array (2D)
         dimensions of of data should be (channels, time)
     onset_indices : array-like
+        onset indices for a given condition or event type
+    tmin, tmax : scalar
+        values for time at start and end of condition, relative to condition onset
+    sfreq : scalar
+        sampling frequency for data
+    is_verbose : boolean
+        flag for 
+    baseline_times : tuple
+        time points to use for baseline computation (start, end). If start or end is None,
         
+    Returns
+    -------
+    epochs : array
+        array containing event epochs, of size (events, channels, time)
+    times : array
+        1D array of time points from `tmin` to `tmax`
 
     """
     epochs = []    

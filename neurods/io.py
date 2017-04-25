@@ -13,7 +13,7 @@ from glob import glob
 from zipfile import ZipFile
 from mne.utils import _fetch_file
 from subprocess import check_output
-from importlib import reload
+#from importlib import reload as _reload
 
 
 path_data = '/data/shared/cogneuro88/'
@@ -124,9 +124,8 @@ def _convert_url_to_downloadable(url):
     """Convert a url to the proper style depending on its website."""
 
     if 'drive.google.com' in url:
-        raise ValueError('Google drive links are not currently supported')
-        # For future support of google drive
-        file_id = url.split('d/').split('/')[0]
+        url_parts = url.split('/')
+        file_id = url_parts[url_parts.index('d')+1]
         base_url = 'https://drive.google.com/uc?export=download&id='
         out = '{}{}'.format(base_url, file_id)
     elif 'www.dropbox.com' in url:

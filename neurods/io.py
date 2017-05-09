@@ -1,4 +1,3 @@
-import datascience as ds
 import numpy as np
 import pandas as pd
 import shutil as sh
@@ -10,8 +9,17 @@ from glob import glob
 from zipfile import ZipFile
 from mne.utils import _fetch_file
 from subprocess import check_output
-from importlib import reload
+try:
+    # Python 3
+    from importlib import reload
+except:
+    # Python 2 compatibility mode
+    from imp import reload
 
+try:
+    import datascience as ds
+except:
+    print('`datascience` module not available.')
 
 path_data = '/home/shared/cogneuro-connector/data/'
 data_list = {'eeg': path_data + 'eeg/',
